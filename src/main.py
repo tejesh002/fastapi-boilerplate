@@ -55,7 +55,7 @@ console_metrics_exporter = ConsoleMetricExporter()
 # Create metric reader that exports to OTLP
 metric_reader = PeriodicExportingMetricReader(
     export_interval_millis=5000,  # Export every 5 seconds
-    metric_exporter=otlp_metrics_exporter
+    exporter=otlp_metrics_exporter
 )
 
 # Create meter provider
