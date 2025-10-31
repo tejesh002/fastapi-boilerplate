@@ -8,7 +8,8 @@ services:
       - "8000:8000"
     environment:
       - ENVIRONMENT=development
-      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/json
     volumes:
       - ./src:/app/src
     depends_on:

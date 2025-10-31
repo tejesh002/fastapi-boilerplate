@@ -10,10 +10,10 @@ from opentelemetry import trace, metrics
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader, ConsoleMetricExporter
-from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 
 import os
 from urllib.parse import urlparse
@@ -33,14 +33,8 @@ trace_provider = TracerProvider(resource=resource)
 
 # Export spans to console and OTLP collector
 processor = BatchSpanProcessor(ConsoleSpanExporter()) # For local debugging
-otlp_endpoint_env = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317")
-# Extract host:port from URL if it's a full URL
-if otlp_endpoint_env.startswith("http://") or otlp_endpoint_env.startswith("https://"):
-    parsed = urlparse(otlp_endpoint_env)
-    otlp_endpoint = f"{parsed.hostname}:{parsed.port}" if parsed.port else parsed.hostname
-else:
-    otlp_endpoint = otlp_endpoint_env
-otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
+otlp_endpoint= "http://otel-collector:4318/v1/traces"
+otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
 otlp_processor = BatchSpanProcessor(otlp_exporter)
 
 trace_provider.add_span_processor(processor)
@@ -49,7 +43,8 @@ trace.set_tracer_provider(trace_provider)
 
 # Configure Metrics
 # Create OTLP metrics exporter
-otlp_metrics_exporter = OTLPMetricExporter(endpoint=otlp_endpoint, insecure=True)
+otlp_metrics_endpoint = "http://otel-collector:4318/v1/metrics"
+otlp_metrics_exporter = OTLPMetricExporter(endpoint=otlp_metrics_endpoint)
 console_metrics_exporter = ConsoleMetricExporter()
 
 # Create metric reader that exports to OTLP
