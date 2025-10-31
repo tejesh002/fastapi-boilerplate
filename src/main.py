@@ -5,11 +5,11 @@ Main application file with health and status routes
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from config.telemetry import setup_telemetry
-from services.home_service import get_root_response
-from services.health_service import get_health_response
-from services.status_service import get_status_response
-from models.schemas import RootResponse, HealthResponse, StatusResponse
+from src.config.telemetry import setup_telemetry
+from src.services.home_service import get_root_response
+from src.services.health_service import get_health_response
+from src.services.status_service import get_status_response
+from src.models.schemas import RootResponse, HealthResponse, StatusResponse
 
 # Enhanced FastAPI app configuration
 app = FastAPI(
