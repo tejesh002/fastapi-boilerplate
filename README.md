@@ -89,6 +89,36 @@ docker-compose logs -f
 docker-compose up --build
 ```
 
+## Makefile Commands
+
+The project includes a Makefile with convenient commands for development:
+
+```bash
+# Format code with Black (src/ and tests/ directories)
+make format
+
+# Format all Python files in the project
+make format-all
+
+# Check code formatting without making changes
+make lint
+
+# Run test suite
+make test
+
+# Run pre-PR checks (linting and tests)
+make pre-pr
+
+# Format code and run tests
+make format-and-test
+```
+
+
+## Running TestCases and TestCoverage 
+```
+black . && pypyr pre-pr
+```
+
 ## Environment Variables
 
 - `ENVIRONMENT` - Application environment (development/production)

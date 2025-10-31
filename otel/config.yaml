@@ -15,6 +15,7 @@ exporters:
       insecure: true
   prometheus:
     endpoint: "0.0.0.0:8889" # Expose metrics for Prometheus to scrape
+    metric_expiration: 180m
 
 processors:
   batch:

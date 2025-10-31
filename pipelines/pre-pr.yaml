@@ -1,0 +1,46 @@
+# Pre-PR pipeline for FastAPI Boilerplate
+# Runs linting and tests before pull requests
+# Usage: pypyr pipelines/pre-pr
+
+context_parser: pypyr.parser.string
+
+steps:
+  - name: pypyr.steps.echo
+    in:
+      echoMe: "=== Starting Pre-PR checks ==="
+  
+  - name: pypyr.steps.cmd
+    comment: Upgrade pip to latest version
+    in:
+      cmd: python -m pip install --upgrade pip
+  
+  - name: pypyr.steps.cmd
+    comment: Install project dependencies
+    in:
+      cmd: pip install -r requirements.txt
+  
+  - name: pypyr.steps.echo
+    in:
+      echoMe: "Running Black lint check..."
+  
+  - name: pypyr.steps.cmd
+    comment: Check code formatting with Black
+    in:
+      cmd: python -m black src/ tests/ --check --diff
+    run: true
+  
+  - name: pypyr.steps.echo
+    in:
+      echoMe: "Running pytest tests..."
+  
+  - name: pypyr.steps.cmd
+    comment: Run test suite
+    in:
+      cmd: python -m pytest tests/ -v --tb=short
+      env:
+        ENVIRONMENT: test
+    run: true
+  
+  - name: pypyr.steps.echo
+    in:
+      echoMe: "=== Pre-PR checks completed successfully! ==="
