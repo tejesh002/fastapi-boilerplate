@@ -15,13 +15,39 @@ A production-ready FastAPI boilerplate with Docker support, health checks, and b
 ```
 fastapi-bp/
 ├── src/
-│   └── main.py          # Main application file
-├── requirements.txt     # Python dependencies
-├── Dockerfile          # Docker image configuration
-├── docker-compose.yml  # Docker Compose configuration
-├── .dockerignore       # Docker ignore file
-├── .gitignore         # Git ignore file
-└── README.md          # This file
+│   ├── main.py              # Main application file
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── telemetry.py     # OpenTelemetry configuration
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── schemas.py       # Pydantic models and schemas
+│   └── services/
+│       ├── __init__.py
+│       ├── health_service.py    # Health check service
+│       ├── home_service.py      # Home page service
+│       └── status_service.py    # Status service
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py          # Pytest configuration
+│   └── test_main.py         # Main test file
+├── otel/
+│   └── config.yaml          # OpenTelemetry collector config
+├── prometheus/
+│   └── prometheus.yml       # Prometheus monitoring config
+├── grafana/
+│   └── dashboard.json       # Grafana dashboard config
+├── pipelines/
+│   └── pre-pr.yaml          # Pre-PR pipeline configuration
+├── requirements.txt         # Python dependencies
+├── pyproject.toml          # Project configuration
+├── pytest.ini              # Pytest configuration
+├── Dockerfile              # Docker image configuration
+├── docker-compose.yml      # Docker Compose configuration
+├── Makefile                # Development commands
+├── README.md               # This file
+├── FUNCTIONAL_README.md    # Functional documentation
+└── GRAFANA_SETUP.md        # Grafana setup guide
 ```
 
 ## Quick Start
