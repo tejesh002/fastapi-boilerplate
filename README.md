@@ -147,7 +147,16 @@ black . && pypyr pre-pr
 
 ## Environment Variables
 
-- `ENVIRONMENT` - Application environment (development/production)
+- `ENVIRONMENT` - Application environment (local/development/production)
+  - When set to `local`: Uses Docker endpoints for OTEL collector
+  - Otherwise: Uses configured OTEL endpoints from environment variables
+
+### OpenTelemetry Configuration
+
+- `OTEL_TRACES_ENDPOINT` - Traces export endpoint (e.g., `http://otel-collector:4318/v1/traces`)
+- `OTEL_METRICS_ENDPOINT` - Metrics export endpoint (e.g., `http://otel-collector:4318/v1/metrics`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` - Legacy OTLP endpoint (fallback if specific endpoints not set)
+- `OTEL_METRIC_EXPORT_INTERVAL` - Metrics export interval in milliseconds (default: 5000)
 
 ## Health Monitoring
 

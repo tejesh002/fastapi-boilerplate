@@ -32,10 +32,19 @@ def setup_telemetry(app, service_name: str = "fastapi-app", enable_console: bool
     # Configure Traces
     trace_provider = TracerProvider(resource=resource)
 
-    # Get OTLP endpoint from environment or use default
-    otlp_base_url = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4318")
-    otlp_traces_endpoint = f"{otlp_base_url}/v1/traces"
-    otlp_metrics_endpoint = f"{otlp_base_url}/v1/metrics"
+    # Determine OTLP endpoints based on environment
+    environment = os.getenv("ENVIRONMENT", "local").lower()
+
+    if environment == "local":
+        # Use docker endpoints for local development
+        otlp_traces_endpoint = "http://otel-collector:4318/v1/traces"
+        otlp_metrics_endpoint = "http://otel-collector:4318/v1/metrics"
+    else:
+        # Use environment variables for other environments
+        otlp_base_url = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4318")
+
+        otlp_traces_endpoint = os.getenv("OTEL_TRACES_ENDPOINT", f"{otlp_base_url}/v1/traces")
+        otlp_metrics_endpoint = os.getenv("OTEL_METRICS_ENDPOINT", f"{otlp_base_url}/v1/metrics")
 
     # Export spans to console (for local debugging) and OTLP collector
     if enable_console:
