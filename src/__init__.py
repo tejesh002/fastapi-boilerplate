@@ -1,2 +1,1 @@
 """FastAPI Boilerplate application package"""
-

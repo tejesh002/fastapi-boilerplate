@@ -2,6 +2,7 @@
 Health service
 Handles health check endpoint logic
 """
+
 from fastapi.responses import JSONResponse
 from datetime import datetime
 

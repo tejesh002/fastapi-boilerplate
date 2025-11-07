@@ -1,6 +1,7 @@
 """
 Tests for main.py endpoints
 """
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -60,6 +61,7 @@ class TestHealthEndpoint:
 
     def test_health_endpoint_increments_counter(self, client, mock_telemetry):
         """Test that health endpoint increments the metrics counter"""
+        client.app.state.health_endpoint_counter = mock_telemetry
         client.get("/health")
 
         # Verify that the counter's add method was called
@@ -190,6 +192,43 @@ class TestOpenAPIDocumentation:
         """Test that ReDoc endpoint exists"""
         response = client.get("/redoc")
         assert response.status_code == status.HTTP_200_OK
+
+
+class TestMiddlewareIntegration:
+    """Tests that core middlewares behave as expected."""
+
+    def test_process_time_header_present(self, client):
+        """Ensure the request timing middleware adds the response header."""
+        response = client.get("/")
+
+        assert "X-Process-Time-ms" in response.headers
+        process_time = float(response.headers["X-Process-Time-ms"])
+        assert process_time >= 0.0
+
+    def test_cors_requests_include_expected_headers(self, client):
+        """CORS middleware should mirror configured options for browser flows."""
+        origin = "https://example.com"
+
+        preflight_headers = {
+            "Origin": origin,
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "Authorization",
+        }
+
+        preflight_response = client.options("/status", headers=preflight_headers)
+        assert preflight_response.status_code == status.HTTP_200_OK
+        assert preflight_response.headers["access-control-allow-origin"] == origin
+        assert preflight_response.headers["access-control-allow-credentials"].lower() == "true"
+
+        get_response = client.get("/status", headers={"Origin": origin})
+        allow_origin_header = get_response.headers["access-control-allow-origin"]
+        assert allow_origin_header in {"*", origin}
+        assert get_response.headers.get("access-control-expose-headers") is not None
+        exposed_headers = {
+            header.strip()
+            for header in get_response.headers["access-control-expose-headers"].split(",")
+        }
+        assert "X-Process-Time-ms" in exposed_headers
 
 
 class TestAppConfiguration:

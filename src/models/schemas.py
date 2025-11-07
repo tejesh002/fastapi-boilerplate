@@ -2,6 +2,7 @@
 Pydantic models for API request/response schemas
 Used for Swagger/OpenAPI documentation
 """
+
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional

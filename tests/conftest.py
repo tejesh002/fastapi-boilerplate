@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures
 """
+
 import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
@@ -14,13 +15,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 @pytest.fixture
 def mock_telemetry():
     """Mock telemetry setup to avoid initializing OpenTelemetry in tests"""
+    os.environ.setdefault("OTEL_EXPORTER_OTLP_DISABLED", "true")
+    os.environ.setdefault("OTEL_ENABLE_CONSOLE_EXPORTERS", "false")
+
     # Remove main and config modules from cache to ensure fresh import with mocks
     modules_to_remove = []
     for key in list(sys.modules.keys()):
         if (
-            key in ("main", "config", "config.telemetry")
+            key in ("main", "config", "config.telemetry", "src.config", "src.config.telemetry")
             or key.startswith("main.")
             or key.startswith("config.")
+            or key.startswith("src.config.")
         ):
             modules_to_remove.append(key)
 
@@ -28,7 +33,7 @@ def mock_telemetry():
         if module in sys.modules:
             del sys.modules[module]
 
-    with patch("config.telemetry.setup_telemetry") as mock_setup:
+    with patch("src.config.telemetry.setup_telemetry") as mock_setup:
         mock_counter = MagicMock()
         mock_setup.return_value = (MagicMock(), mock_counter)
         yield mock_counter
@@ -43,6 +48,7 @@ def client(mock_telemetry):
 
     # Patch the health_endpoint_counter in the main module to use our mock
     main.health_endpoint_counter = mock_telemetry
+    main.app.state.health_endpoint_counter = mock_telemetry
 
     return TestClient(main.app)
 

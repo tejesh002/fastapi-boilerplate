@@ -2,6 +2,7 @@
 Home/Root service
 Handles root endpoint logic
 """
+
 from fastapi.responses import JSONResponse
 
 

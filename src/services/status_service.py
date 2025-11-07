@@ -2,6 +2,7 @@
 Status service
 Handles status check endpoint logic
 """
+
 from fastapi.responses import JSONResponse
 from datetime import datetime
 import os
