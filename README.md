@@ -15,22 +15,30 @@ A production-ready FastAPI boilerplate with Docker support, health checks, and b
 ```
 fastapi-bp/
 ├── src/
-│   ├── main.py              # Main application file
+│   ├── main.py                  # Main application entry point
 │   ├── config/
-│   │   ├── __init__.py
-│   │   └── telemetry.py     # OpenTelemetry configuration
+│   │   └── telemetry.py         # OpenTelemetry instrumentation setup
+│   ├── middlewares/
+│   │   ├── cors.py              # CORS configuration
+│   │   ├── compression.py       # GZip middleware
+│   │   └── request_timing.py    # Process time response header
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── schemas.py       # Pydantic models and schemas
-│   └── services/
-│       ├── __init__.py
-│       ├── health_service.py    # Health check service
-│       ├── home_service.py      # Home page service
-│       └── status_service.py    # Status service
+│   │   └── schemas.py           # Pydantic models and schemas
+│   ├── routes/
+│   │   ├── root.py              # Root endpoint definitions
+│   │   ├── health.py            # Health endpoint definitions
+│   │   └── status.py            # Status endpoint definitions
+│   ├── services/
+│   │   ├── health_service.py    # Health check service logic
+│   │   ├── home_service.py      # Home page service logic
+│   │   └── status_service.py    # Status service logic
+│   └── utils/
+│       └── security.py          # Hashing and encryption helpers
 ├── tests/
 │   ├── __init__.py
-│   ├── conftest.py          # Pytest configuration
-│   └── test_main.py         # Main test file
+│   ├── conftest.py              # Shared pytest fixtures and telemetry mocks
+│   ├── test_main.py             # API and middleware integration tests
+│   └── test_security_utils.py   # Unit tests for security helpers
 ├── otel/
 │   └── config.yaml          # OpenTelemetry collector config
 ├── prometheus/
@@ -140,23 +148,35 @@ make format-and-test
 ```
 
 
-## Running TestCases and TestCoverage 
-```
-black . && pypyr pre-pr
-```
+## Tests & Quality
+
+- Run the full pytest suite (uses the bundled virtualenv):
+  ```bash
+  ./ENV/bin/pytest
+  ```
+- Run formatting + static checks:
+  ```bash
+  make pre-pr
+  ```
+- Format the codebase:
+  ```bash
+  make format
+  ```
+
+> **Note:** Test fixtures automatically disable OTLP exporters to avoid connection noise. To validate telemetry exports locally, unset `OTEL_EXPORTER_OTLP_DISABLED` before running pytest.
 
 ## Environment Variables
 
-- `ENVIRONMENT` - Application environment (local/development/production)
-  - When set to `local`: Uses Docker endpoints for OTEL collector
-  - Otherwise: Uses configured OTEL endpoints from environment variables
+- `ENVIRONMENT` — Application environment (e.g. `local`, `development`, `production`)
 
 ### OpenTelemetry Configuration
 
-- `OTEL_TRACES_ENDPOINT` - Traces export endpoint (e.g., `http://otel-collector:4318/v1/traces`)
-- `OTEL_METRICS_ENDPOINT` - Metrics export endpoint (e.g., `http://otel-collector:4318/v1/metrics`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` - Legacy OTLP endpoint (fallback if specific endpoints not set)
-- `OTEL_METRIC_EXPORT_INTERVAL` - Metrics export interval in milliseconds (default: 5000)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` — Base OTLP endpoint (defaults to `http://otel-collector:4318`)
+- `OTEL_TRACES_ENDPOINT` — Explicit traces endpoint override (defaults to `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/traces`)
+- `OTEL_METRICS_ENDPOINT` — Explicit metrics endpoint override (defaults to `${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/metrics`)
+- `OTEL_METRIC_EXPORT_INTERVAL` — Metrics export interval in milliseconds (default `5000`)
+- `OTEL_EXPORTER_OTLP_DISABLED` — Set to `true`/`1`/`yes`/`on` to disable OTLP exporters (useful for local testing)
+- `OTEL_ENABLE_CONSOLE_EXPORTERS` — Set to `true` to emit telemetry to stdout for debugging
 
 ## Health Monitoring
 
