@@ -36,7 +36,7 @@ steps:
   - name: pypyr.steps.cmd
     comment: Run test suite
     in:
-      cmd: python -m pytest tests/ -v --tb=short
+      cmd: python -m pytest tests/ -v --tb=short --cov=src --cov-report=term --no-cov-on-fail --cov-fail-under=85
       env:
         ENVIRONMENT: test
     run: true
