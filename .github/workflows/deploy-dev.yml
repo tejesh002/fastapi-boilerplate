@@ -1,0 +1,104 @@
+name: Deploy to Dev VM
+
+# Required GitHub Secrets:
+# - VM_HOST: The IP address or hostname of the Microsoft VM
+# - VM_USERNAME: SSH username for the VM
+# - VM_SSH_KEY: Private SSH key for authentication (the public key should be in ~/.ssh/authorized_keys on the VM)
+# - VM_SSH_PORT: (Optional) SSH port, defaults to 22 if not provided
+
+on:
+  push:
+    branches:
+      - master
+    # Only trigger on direct pushes to master branch
+    # This ensures it only runs when code is directly pushed to master
+
+jobs:
+  deploy:
+    name: Deploy to Development VM
+    runs-on: ubuntu-latest
+    # Only run on direct pushes, not on pull request merges
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Transfer files to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT || 22 }}
+          source: "."
+          target: "/home/${{ secrets.VM_USERNAME }}/fastapi-boilerplate"
+          strip_components: 0
+          exclude: |
+            .git
+            .github
+            venv
+            __pycache__
+            *.pyc
+            .pytest_cache
+            .coverage
+            htmlcov
+
+      - name: Deploy application on VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_SSH_PORT || 22 }}
+          script: |
+            cd /home/${{ secrets.VM_USERNAME }}/fastapi-boilerplate
+            
+            # Ensure Docker and Docker Compose are available
+            if ! command -v docker &> /dev/null; then
+              echo "Docker is not installed. Please install Docker on the VM."
+              exit 1
+            fi
+            
+            # Stop existing containers
+            docker-compose down || true
+            
+            # Pull latest images for dependencies (if any)
+            docker-compose pull || true
+            
+            # Build and start new containers
+            docker-compose up -d --build
+            
+            # Wait for services to be ready
+            echo "Waiting for services to start..."
+            sleep 10
+            
+            # Verify deployment
+            echo "Checking container status..."
+            docker-compose ps
+            
+            # Health check
+            echo "Performing health check..."
+            max_attempts=30
+            attempt=0
+            while [ $attempt -lt $max_attempts ]; do
+              if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+                echo "Health check passed!"
+                break
+              fi
+              attempt=$((attempt + 1))
+              echo "Health check attempt $attempt/$max_attempts failed, retrying..."
+              sleep 2
+            done
+            
+            if [ $attempt -eq $max_attempts ]; then
+              echo "Health check failed after $max_attempts attempts"
+              docker-compose logs
+              exit 1
+            fi
+            
+            # Clean up old images
+            docker image prune -f
+            
+            echo "Deployment completed successfully!"
+
