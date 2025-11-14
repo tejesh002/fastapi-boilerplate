@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-boilerplate-ingress
+  namespace: fastapi-boilerplate
+  labels:
+    app: fastapi-boilerplate
+  annotations:
+    # Uncomment and configure based on your ingress controller
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx  # Change based on your ingress controller
+  rules:
+  - host: fastapi-boilerplate.example.com  # Change to your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi-boilerplate-service
+            port:
+              number: 80
+  # Uncomment for TLS
+  # tls:
+  # - hosts:
+  #   - fastapi-boilerplate.example.com
+  #   secretName: fastapi-boilerplate-tls
+

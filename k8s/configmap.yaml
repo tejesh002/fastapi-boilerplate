@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-boilerplate-config
+  namespace: fastapi-boilerplate
+  labels:
+    app: fastapi-boilerplate
+data:
+  ENVIRONMENT: "production"
+  PYTHONPATH: "/app/src"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  # OpenTelemetry Configuration
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/json"
+  OTEL_SERVICE_NAME: "fastapi-boilerplate"
+
